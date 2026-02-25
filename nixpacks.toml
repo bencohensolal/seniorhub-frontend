@@ -5,7 +5,10 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "npm run build",
+  "echo 'Build completed successfully'"
+]
 
 [start]
-cmd = "npm run preview -- --host 0.0.0.0 --port $PORT"
+cmd = "npx vite preview --host 0.0.0.0 --port ${PORT:-4173}"
