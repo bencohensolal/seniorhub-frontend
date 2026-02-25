@@ -16,7 +16,7 @@ build/
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local
+# Keep .env.production as template (actual values set in Railway)
 
 # Logs
 npm-debug.log*
