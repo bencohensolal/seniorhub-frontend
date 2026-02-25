@@ -1,21 +1,61 @@
 import { useState, useEffect } from 'react';
 import type { AuthenticatedUser } from '@/types/auth.types';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import { AuthStorage } from '@/services/auth.storage';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState<AuthenticatedUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(null);
 
+  const { user, accessToken, isAuthenticating, errorMessage, signInWithGoogle, signOut } = useGoogleAuth();
+
+  // Load persisted authentication data on startup
   useEffect(() => {
-    // Simulate loading persisted data
     const loadPersistedData = async () => {
-      // TODO: Load from localStorage or secure storage
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setIsLoading(false);
+      try {
+        const authData = await AuthStorage.loadAuthData();
+        if (authData) {
+          setCurrentUser(authData.user);
+          setAuthenticated(true);
+          console.log('[App] Restored authentication from storage');
+        }
+      } catch (error) {
+        console.error('[App] Failed to load persisted auth data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadPersistedData();
   }, []);
+
+  // Save authentication data when user logs in
+  useEffect(() => {
+    if (user && accessToken) {
+      AuthStorage.saveAuthData(user, accessToken)
+        .then(() => {
+          setCurrentUser(user);
+          setAuthenticated(true);
+          console.log('[App] User authenticated successfully');
+        })
+        .catch((error) => {
+          console.error('[App] Failed to save auth data:', error);
+        });
+    }
+  }, [user, accessToken]);
+
+  const handleLogout = async () => {
+    try {
+      await AuthStorage.clearAuthData();
+      signOut();
+      setCurrentUser(null);
+      setAuthenticated(false);
+      console.log('[App] User logged out');
+    } catch (error) {
+      console.error('[App] Failed to logout:', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -103,36 +143,34 @@ export default function App() {
           </p>
 
           <button
-            onClick={() => {
-              // Mock authentication for now
-              setUser({
-                userId: 'demo-user',
-                email: 'demo@seniorhub.com',
-                firstName: 'Demo',
-                lastName: 'User',
-              });
-              setAuthenticated(true);
-            }}
+            onClick={signInWithGoogle}
+            disabled={isAuthenticating}
             style={{
               width: '100%',
               padding: '12px 24px',
-              backgroundColor: '#4F46E5',
+              backgroundColor: isAuthenticating ? '#9CA3AF' : '#4F46E5',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '8px',
               fontSize: '16px',
               fontWeight: '600',
-              cursor: 'pointer',
+              cursor: isAuthenticating ? 'not-allowed' : 'pointer',
               transition: 'background-color 0.2s',
             }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#4338CA')}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#4F46E5')}
+            onMouseOver={(e) => !isAuthenticating && (e.currentTarget.style.backgroundColor = '#4338CA')}
+            onMouseOut={(e) => !isAuthenticating && (e.currentTarget.style.backgroundColor = '#4F46E5')}
           >
-            Sign In with Google
+            {isAuthenticating ? 'Signing in...' : 'Sign In with Google'}
           </button>
 
+          {errorMessage && (
+            <p style={{ marginTop: '16px', fontSize: '14px', color: '#DC2626' }}>
+              {errorMessage}
+            </p>
+          )}
+
           <p style={{ marginTop: '24px', fontSize: '14px', color: '#9CA3AF' }}>
-            Authentication with Google OAuth will be implemented soon
+            Secure authentication with Google OAuth 2.0
           </p>
         </div>
       </div>
@@ -154,13 +192,10 @@ export default function App() {
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ color: '#6B7280' }}>
-              {user?.firstName} {user?.lastName}
+              {currentUser?.firstName} {currentUser?.lastName}
             </span>
             <button
-              onClick={() => {
-                setUser(null);
-                setAuthenticated(false);
-              }}
+              onClick={handleLogout}
               style={{
                 padding: '8px 16px',
                 backgroundColor: '#FFFFFF',
@@ -179,7 +214,7 @@ export default function App() {
 
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px' }}>
         <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px' }}>
-          Welcome back, {user?.firstName}!
+          Welcome back, {currentUser?.firstName}!
         </h2>
 
         <div
