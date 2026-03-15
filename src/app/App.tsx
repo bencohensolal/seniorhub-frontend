@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import type { AuthenticatedUser } from '@/types/auth.types';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { AuthStorage } from '@/services/auth.storage';
+import PrivacyPolicyPage from './PrivacyPolicyPage';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -57,127 +59,7 @@ export default function App() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          backgroundColor: '#F9FAFB',
-        }}
-      >
-        <div
-          style={{
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              border: '4px solid #E5E7EB',
-              borderTopColor: '#4F46E5',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 16px',
-            }}
-          />
-          <h1
-            style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: '8px',
-            }}
-          >
-            SeniorHub
-          </h1>
-          <p style={{ color: '#6B7280' }}>Loading...</p>
-        </div>
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          backgroundColor: '#F9FAFB',
-          padding: '24px',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '400px',
-            width: '100%',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            textAlign: 'center',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: '32px',
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: '8px',
-            }}
-          >
-            Welcome to SeniorHub
-          </h1>
-          <p style={{ color: '#6B7280', marginBottom: '32px' }}>
-            Making daily life easier for seniors and their caregivers
-          </p>
-
-          <button
-            onClick={signInWithGoogle}
-            disabled={isAuthenticating}
-            style={{
-              width: '100%',
-              padding: '12px 24px',
-              backgroundColor: isAuthenticating ? '#9CA3AF' : '#4F46E5',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: isAuthenticating ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseOver={(e) => !isAuthenticating && (e.currentTarget.style.backgroundColor = '#4338CA')}
-            onMouseOut={(e) => !isAuthenticating && (e.currentTarget.style.backgroundColor = '#4F46E5')}
-          >
-            {isAuthenticating ? 'Signing in...' : 'Sign In with Google'}
-          </button>
-
-          {errorMessage && (
-            <p style={{ marginTop: '16px', fontSize: '14px', color: '#DC2626' }}>
-              {errorMessage}
-            </p>
-          )}
-
-          <p style={{ marginTop: '24px', fontSize: '14px', color: '#9CA3AF' }}>
-            Secure authentication with Google OAuth 2.0
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
+  const renderAuthenticatedApp = () => (
     <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
       <header
         style={{
@@ -279,5 +161,131 @@ export default function App() {
         </div>
       </main>
     </div>
+  );
+
+  const renderSignedOutApp = () => (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#F9FAFB',
+        padding: '24px',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '400px',
+          width: '100%',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
+          padding: '32px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '32px',
+            fontWeight: 'bold',
+            color: '#111827',
+            marginBottom: '8px',
+          }}
+        >
+          Welcome to SeniorHub
+        </h1>
+        <p style={{ color: '#6B7280', marginBottom: '32px' }}>
+          Making daily life easier for seniors and their caregivers
+        </p>
+
+        <button
+          onClick={signInWithGoogle}
+          disabled={isAuthenticating}
+          style={{
+            width: '100%',
+            padding: '12px 24px',
+            backgroundColor: isAuthenticating ? '#9CA3AF' : '#4F46E5',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: '600',
+            cursor: isAuthenticating ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseOver={(e) => !isAuthenticating && (e.currentTarget.style.backgroundColor = '#4338CA')}
+          onMouseOut={(e) => !isAuthenticating && (e.currentTarget.style.backgroundColor = '#4F46E5')}
+        >
+          {isAuthenticating ? 'Signing in...' : 'Sign In with Google'}
+        </button>
+
+        {errorMessage && (
+          <p style={{ marginTop: '16px', fontSize: '14px', color: '#DC2626' }}>
+            {errorMessage}
+          </p>
+        )}
+
+        <p style={{ marginTop: '24px', fontSize: '14px', color: '#9CA3AF' }}>
+          Secure authentication with Google OAuth 2.0
+        </p>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          backgroundColor: '#F9FAFB',
+        }}
+      >
+        <div
+          style={{
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              border: '4px solid #E5E7EB',
+              borderTopColor: '#4F46E5',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px',
+            }}
+          />
+          <h1
+            style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: '#111827',
+              marginBottom: '8px',
+            }}
+          >
+            SeniorHub
+          </h1>
+          <p style={{ color: '#6B7280' }}>Loading...</p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/" element={isAuthenticated ? renderAuthenticatedApp() : renderSignedOutApp()} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
