@@ -1,9 +1,13 @@
-{$PORT:4173}
+{
+	auto_https off
+}
 
-root * /app/dist
-encode gzip zstd
+http://0.0.0.0:{$PORT:4173} {
+	root * /app/dist
+	encode gzip zstd
 
-# SPA fallback so direct visits to /privacy and future routes work.
-try_files {path} /index.html
+	# SPA fallback so direct visits to /privacy and future routes work.
+	try_files {path} /index.html
 
-file_server
+	file_server
+}
