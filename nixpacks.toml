@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "caddy"]
 
 [phases.install]
 cmds = ["npm ci"]
@@ -11,4 +11,4 @@ cmds = [
 ]
 
 [start]
-cmd = "npx vite preview --host 0.0.0.0 --port ${PORT:-4173}"
+cmd = "caddy run --config /app/Caddyfile --adapter caddyfile"

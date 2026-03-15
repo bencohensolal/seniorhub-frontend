@@ -1,0 +1,9 @@
+{$PORT:4173}
+
+root * /app/dist
+encode gzip zstd
+
+# SPA fallback so direct visits to /privacy and future routes work.
+try_files {path} /index.html
+
+file_server
