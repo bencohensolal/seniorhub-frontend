@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import type { AuthenticatedUser } from '@/types/auth.types';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { AuthStorage } from '@/services/auth.storage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 
 export default function App() {
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(null);
 
   const { user, accessToken, isAuthenticating, errorMessage, signInWithGoogle, signOut } = useGoogleAuth();
+  const isPrivacyRoute = location.pathname === '/privacy';
 
   // Load persisted authentication data on startup
   useEffect(() => {
@@ -234,6 +236,10 @@ export default function App() {
   );
 
   if (isLoading) {
+    if (isPrivacyRoute) {
+      return <PrivacyPolicyPage />;
+    }
+
     return (
       <div
         style={{
@@ -282,10 +288,13 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/privacy" element={<PrivacyPolicyPage />} />
-      <Route path="/" element={isAuthenticated ? renderAuthenticatedApp() : renderSignedOutApp()} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    isPrivacyRoute ? (
+      <PrivacyPolicyPage />
+    ) : (
+      <Routes>
+        <Route path="/" element={isAuthenticated ? renderAuthenticatedApp() : renderSignedOutApp()} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    )
   );
 }
