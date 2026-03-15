@@ -2,7 +2,7 @@
 	auto_https off
 }
 
-http://0.0.0.0:{$PORT:4173} {
+:{$PORT:4173} {
 	root * /app/dist
 	encode gzip zstd
 
